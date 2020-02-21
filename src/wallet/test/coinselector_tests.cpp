@@ -185,7 +185,10 @@ BOOST_AUTO_TEST_CASE(bnb_search_test)
     selection.clear();
 
     // Select 11 Cent, not possible
+    value_ret = 0;
     BOOST_CHECK(!SelectCoinsBnB(GroupCoins(utxo_pool), 11 * CENT, 0.5 * CENT, selection, value_ret, not_input_fees));
+    BOOST_CHECK_EQUAL(value_ret, 0);
+    BOOST_CHECK(equal_sets(selection, actual_selection));
     actual_selection.clear();
     selection.clear();
 
