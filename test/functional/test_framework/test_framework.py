@@ -119,8 +119,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.disable_autoconnect = True
         self.set_test_params()
         assert self.wallet_names is None or len(self.wallet_names) <= self.num_nodes
-        if self.options.timeout_factor == 0 :
-            self.options.timeout_factor = 99999
+        if self.options.timeout_factor <= 0 :
+            self.options.timeout_factor = 1
         self.rpc_timeout = int(self.rpc_timeout * self.options.timeout_factor) # optionally, increase timeout by a factor
 
     def main(self):
