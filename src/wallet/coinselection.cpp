@@ -96,7 +96,8 @@ std::optional<SelectionResult> SelectCoinsBnB(std::vector<OutputGroup>& utxo_poo
             (curr_waste > best_waste && (utxo_pool.at(0).fee - utxo_pool.at(0).long_term_fee) > 0)) { // Don't select things which we know will be more wasteful if the waste is increasing
             backtrack = true;
         } else if (curr_value >= selection_target) {       // Selected value is within range
-            curr_waste += (curr_value - selection_target); // This is the excess value which is added to the waste for the below comparison
+            curr_waste = (curr_value - selection_target); // This is the excess value which is added to the waste for the below comparison
+
             // Adding another UTXO after this check could bring the waste down if the long term fee is higher than the current fee.
             // However we are not going to explore that because this optimization for the waste is only done when we have hit our target
             // value. Adding any more UTXOs will be just burning the UTXO; it will go entirely to fees. Thus we aren't going to
@@ -105,7 +106,7 @@ std::optional<SelectionResult> SelectCoinsBnB(std::vector<OutputGroup>& utxo_poo
                 best_selection = curr_selection;
                 best_waste = curr_waste;
             }
-            curr_waste -= (curr_value - selection_target); // Remove the excess value as we will be selecting different coins now
+
             backtrack = true;
         }
 
@@ -123,7 +124,6 @@ std::optional<SelectionResult> SelectCoinsBnB(std::vector<OutputGroup>& utxo_poo
             assert(utxo_pool_index == curr_selection.back());
             OutputGroup& utxo = utxo_pool.at(utxo_pool_index);
             curr_value -= utxo.GetSelectionAmount();
-            curr_waste -= utxo.fee - utxo.long_term_fee;
             curr_selection.pop_back();
         } else { // Moving forwards, continuing down this branch
             OutputGroup& utxo = utxo_pool.at(utxo_pool_index);
@@ -142,7 +142,6 @@ std::optional<SelectionResult> SelectCoinsBnB(std::vector<OutputGroup>& utxo_poo
                 // Inclusion branch first (Largest First Exploration)
                 curr_selection.push_back(utxo_pool_index);
                 curr_value += utxo.GetSelectionAmount();
-                curr_waste += utxo.fee - utxo.long_term_fee;
             }
         }
     }
@@ -157,7 +156,6 @@ std::optional<SelectionResult> SelectCoinsBnB(std::vector<OutputGroup>& utxo_poo
         result.AddInput(utxo_pool.at(i));
     }
     result.ComputeAndSetWaste(cost_of_change, cost_of_change, CAmount{0});
-    assert(best_waste == result.GetWaste());
 
     return result;
 }
