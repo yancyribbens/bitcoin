@@ -453,6 +453,26 @@ BOOST_AUTO_TEST_CASE(bnb_search_test)
         add_coin(3 * CENT, 2, expected_result);
         BOOST_CHECK(EquivalentResult(expected_result, *res));
     }
+    {
+        std::unique_ptr<CWallet> wallet = NewWallet(m_node);
+
+        CoinsResult available_coins;
+
+        coin_selection_params_bnb.m_effective_feerate = CFeeRate(1);
+        coin_selection_params_bnb.m_long_term_feerate = CFeeRate(0);
+
+        // Add utxos
+        CAmount coin_amount = 8740670712339394302;
+        CAmount cost_of_change = 18141417255681066410;
+        CAmount selection_target = 718534620209945;
+
+        assert(coin_amount >= selection_target);
+        assert(coin_amount < selection_target + cost_of_change);
+
+        add_coin(available_coins, *wallet, coin_amount, coin_selection_params_bnb.m_effective_feerate, 6 * 24, false, 0, true);
+        const auto& res = SelectCoinsBnB(GroupCoins(available_coins.All(), /*subtract_fee_outputs*/true), selection_target, cost_of_change);
+        BOOST_CHECK(res);
+    }
 }
 
 BOOST_AUTO_TEST_CASE(bnb_sffo_restriction)
